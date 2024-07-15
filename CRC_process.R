@@ -1,0 +1,62 @@
+library(Cardinal)
+options(scipen = 999)
+
+# 读取数据
+data_path <- "E:\\mass_spectrum_data\\DGC\\imzML\\GC070T_DGC_83881_E001208_F1_R1.imzML"
+msi <- readImzML(data_path, memory = FALSE, verbose = TRUE, mass.range = c(min_mz, max_mz))
+
+
+set.seed(1)
+# 质量校准
+# 首先估计参考峰位置
+peaks <- estimateReferencePeaks(msi)
+
+normalized_msi <- normalize(mse_processed, method = "tic")
+# 使用局部最大值法进行质量校准
+mse_calibrated <- recalibrate(msi, ref=peaks, method="locmax", tolerance=20, units="ppm")
+
+plot(mse, i=c(2,4,5), superpose=TRUE, xlim=c(0,1750))
+
+# 数据平滑
+mse_smoothed <- smooth(mse_calibrated, method="gaussian", width=5) # 高斯平滑，宽度参数需根据数据调整
+
+# 信噪比处理，例如通过峰值提取来实现
+#mse_processed <- peakPick(mse_smoothed, method="diff", SNR=2) # 基于差异法，信号噪声比阈值根据数据调整
+plot(mse_processed)
+print(mse_smoothed)
+
+mse_align <- peakAlign(mse_smoothed)
+
+#plot(mse_align, i = 4)
+# plot(mse_processed)
+# 最终处理完后，应用所有排队的处理步骤
+mse_final <- process(mse_smoothed)
+
+
+print(mse_final)
+#mzlist <- mse_final@spectraData[['mz']]
+#n = 111
+#print(nrow(mzlist))
+#length(mzlist)
+#plot(mse_final)
+# 绘制多个光谱比较
+# plot(mse_final, i=11) # 选了第1, 2, 和第3个光谱比较
+# plot(mse_final, i=12) #
+# mse_mean <- summarizeFeatures(mse_final, stat="mean") # 计算所有光谱的平均
+# plot(mse_mean, "mean") # 绘制平均光谱图```
+
+#coord_m <- data.frame(
+#  x = c(1:8034),  # x坐标值
+#  y = rep(1, 8034)   # y坐标值
+#)
+#coord_matrix <- as.matrix(coord_m)
+#print(coord_matrix)
+
+# 对整个数据集进行聚类
+#data_ssc <- spatialShrunkenCentroids(mse_final, r=1, k=4, s=0, coord=coord_matrix)
+#image(data_scc, i=1:4)
+#plot(scc, i=1:4)
+
+# 将处理完的数据保存为imzML文件
+output_path <- "E:\\mass_spectrum_data\\DGC\\processed\\GC070T_DGC_83881_E001208_F1_R1"
+writeImzML(mse_final, output_path)
