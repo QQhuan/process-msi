@@ -14,6 +14,9 @@ filename <- c("GC070N_DGC_83882_E001209_F1_R1") #, "GC070N_DGC_83882_E001209_F2_
 set.seed(1)
 # 创建空列表以存储处理后的数据
 processed_msis <- list()
+path <- "E:\\mass_spectrum_data\\DGC\\imzML\\GC070N_DGC_83882_E001209_F1_R1.imzML"
+msi <- readImzML(path, memory = FALSE, verbose = TRUE, mass.range = c(min_mz, max_mz))
+print(msi)
 
 for (path in file_paths) {
   # 读取数据

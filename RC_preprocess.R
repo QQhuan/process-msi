@@ -13,18 +13,23 @@ set.seed(1)
 file_paths <- list.files(folder_path, pattern = "*.imzML", full.names = TRUE)
 
 for (path in file_paths) {
-  msi <- readImzML(path, memory = FALSE, verbose = TRUE, mass.range = c(min_mz, max_mz))
-  # 质量校准
+  # 注意：对于continuous imzML文件，cardinal默认不能指定范围
+  msi <- readImzML(path, memory = FALSE, verbose = TRUE) #, mass.range = c(min_mz, max_mz))
   
-  peaks <- estimateReferencePeaks(msi)
-  mse_recalibrate <- recalibrate(msi, ref=peaks, method="locmax", tolerance=50, units="ppm")
+  # 手动裁剪msi中featureData（mz）的范围
+  mass <- subset(msi, mz >= 800)
+  # 可视化检查mz范围，结果正确 plot(mass)
+  
+  # 质量校准
+  peaks <- estimateReferencePeaks(mass)
+  mse_recalibrate <- recalibrate(mass, ref=peaks, method="locmax", tolerance=50, units="ppm")
   
   # 查看校准后的数据概览
   normalized_msi <- normalize(mse_recalibrate, method = "tic")
   
   # 数据平滑
   mse_smoothed1 <- smooth(normalized_msi, method="sgolay", width=11) # 第一次平滑，宽度参数需根据数据调整
-  mse_smoothed <- smooth(mse_smoothed1, method="sgolay", width=11) # 第二次平滑，宽度参数需根据数据调整
+  mse_smoothed <- smooth(mse_smoothed1, method="sgolay", width=5) # 第二次平滑，宽度参数需根据数据调整
   
   # 基线校正
   mse_baselined <- reduceBaseline(mse_smoothed, method="median") # 采用局部中值插值法
@@ -38,7 +43,7 @@ for (path in file_paths) {
   # 导出
   filename <- basename(path)
   name <- gsub(".imzML$", "", filename)
-  root <- "E:\\mass_spectrum_data\\CRC-PXD019662-20240607\\processed0713"
+  root <- "E:\\mass_spectrum_data\\CRC-PXD019662-20240607\\processed0715"
   output_path <- file.path(root, name)
   writeImzML(mse_final, output_path, mass.range = c(min_mz, max_mz))
   
