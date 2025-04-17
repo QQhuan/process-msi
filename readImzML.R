@@ -30,7 +30,7 @@ plot(mse_baselined)
 mse_smoothed <- smooth(mse_baselined, method="gaussian", width=5) # 高斯平滑，宽度参数需根据数据调整
 
 # 信噪比处理，例如通过峰值提取来实现
-#mse_processed <- peakPick(mse_smoothed, method="diff", SNR=2) # 基于差异法，信号噪声比阈值根据数据调整
+mse_processed <- peakPick(mse_smoothed, method="diff", SNR=2) # 基于差异法，信号噪声比阈值根据数据调整
 plot(mse_processed)
 print(mse_smoothed)
 
@@ -72,5 +72,5 @@ print(mse_align)
 #plot(scc, i=1:4)
 
 # 将处理完的数据保存为imzML文件
-output_path <- "E:\\mass_spectrum_data\\DGC\\processed2\\GC070T_DGC_83881_E001208_F1_R1"
-writeImzML(mse_final, output_path)
+# output_path <- "E:\\mass_spectrum_data\\DGC\\processed2\\GC070T_DGC_83881_E001208_F1_R1"
+# writeImzML(mse_final, output_path)
